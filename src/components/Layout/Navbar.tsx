@@ -23,7 +23,7 @@ export const Navbar = () => {
             <li><NavLink to="/contacto">Contacto</NavLink></li>
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">daisyUI</a>
+        <a className="btn btn-ghost text-xl">GlobalOffice</a>
       </div>
       <div className="z-20 hidden navbar-center lg:flex">
         <ul className="px-1 text-xl menu menu-horizontal">
