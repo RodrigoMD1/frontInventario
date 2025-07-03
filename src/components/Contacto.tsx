@@ -48,10 +48,10 @@ export const Contacto = () => {
 
 
   const showAlert = () => {
-    Swal.fire('Mensaje enviado con exito', 'Gracias por contactarte', 'success')
+    Swal.fire('Mensaje enviado con éxito', 'Nos pondremos en contacto contigo pronto para hablar sobre tu inventario', 'success')
   }
   const errorAlert = () => {
-    Swal.fire('Necesitas completar el formulario', ':)', 'error')
+    Swal.fire('Por favor completa todos los campos', 'Necesitamos tu información para poder ayudarte', 'error')
   }
 
 
@@ -101,7 +101,7 @@ export const Contacto = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       ,
-      contact: "Rodrigo.martinez224@gmil.com"
+      contact: "soporte@globaloffice.com"
     },
 
 
@@ -112,7 +112,7 @@ export const Contacto = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
         </svg>
       ,
-      contact: "C.A.B.A, Buenos Aires, Argentina."
+      contact: "Buenos Aires, Argentina - Servicio Global"
     },
   ]
 
@@ -134,10 +134,11 @@ export const Contacto = () => {
           <div className="flex-1 max-w-lg px-4 mx-auto text-white">
             <div>
               <h3 className="text-4xl font-semibold text-white sm:text-5xl">
-                Ponete en contacto
+                Contacta con GlobalOffice
               </h3>
               <p className="mt-3 sm:text-xl">
-                Cualquier consulta o duda que tengas o queres info solo completa el formulario y nos ponemos en contacto
+                ¿Tienes dudas sobre nuestro sistema de inventario? ¿Necesitas información sobre planes y precios? 
+                Completa el formulario y nuestro equipo te contactará para ayudarte a optimizar la gestión de tu negocio.
               </p>
 
 
@@ -197,7 +198,7 @@ export const Contacto = () => {
 
 
                 <input
-                  placeholder='Nombre y apellido '
+                  placeholder='Nombre completo de tu empresa o personal'
                   {...register("user_name", { required: true, minLength: 2 })}
 
                   className="w-full px-3 py-2 mt-2 text-white bg-transparent border rounded-lg shadow-sm focus:border-white"
@@ -211,7 +212,7 @@ export const Contacto = () => {
 
                 <input
                   type='email'
-                  placeholder='Email'
+                  placeholder='Email de contacto empresarial'
                   {...register("user_email", { required: true, minLength: 2 })}
                   className="w-full px-3 py-2 mt-2 text-white bg-transparent border rounded-lg shadow-sm focus:border-white"
                 />
@@ -227,7 +228,7 @@ export const Contacto = () => {
                 </label>
 
                 <textarea
-                  placeholder='Escribi tus consultas o dudas'
+                  placeholder='Cuéntanos sobre tu negocio y qué necesitas para gestionar tu inventario'
                   {...register("message", { required: true, minLength: 2 })}
                   className="w-full px-3 py-2 mt-2 bg-transparent border rounded-lg shadow-sm outline-none appearance-none resize-none h-36 focus:border-white" name='message'></textarea>
               </div>
@@ -235,7 +236,7 @@ export const Contacto = () => {
 
               <button
 
-                className="w-full px-4 py-2 font-medium text-white duration-150 bg-red-600 rounded-lg sm:text-xl hover:bg-gray-700 active:bg-gray-900"
+                className="w-full px-4 py-2 font-medium text-white duration-150 bg-blue-600 rounded-lg sm:text-xl hover:bg-blue-700 active:bg-blue-800"
                 type="submit"
                 value='Send'
               >
