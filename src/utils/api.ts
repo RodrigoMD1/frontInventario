@@ -47,7 +47,10 @@ interface Payment {
 }
 
 // Configuración de la API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+// En desarrollo usamos proxy (/api), en producción la URL completa
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.DEV ? '/api' : 'http://localhost:3000'
+)
 
 // Helper function para hacer requests autenticados
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {

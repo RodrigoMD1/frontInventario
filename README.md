@@ -79,6 +79,8 @@ npm run build
 npm run preview
 ```
 
+**IMPORTANTE**: Si tienes problemas de CORS con el backend, revisa el archivo `SOLUCION_CORS.md` para las soluciones implementadas.
+
 ## 🧪 Testing y Verificación
 
 ### Verificar configuración de MercadoPago
