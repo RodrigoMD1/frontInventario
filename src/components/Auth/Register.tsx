@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import Swal from 'sweetalert2'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { authAPI } from '../../utils/api'
+import { authAPI, storeAPI } from '../../utils/api'
+import { useAuth } from '../../hooks/useAuth'
 
 // Esquema simplificado según tu backend
 const registerSchema = z.object({
@@ -26,6 +27,7 @@ type RegisterFormData = z.infer<typeof registerSchema>
 export const Register = () => {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { login: authLogin } = useAuth() // Usar el hook de autenticación
 
   const {
     register,
@@ -42,17 +44,52 @@ export const Register = () => {
     setIsLoading(true)
     
     try {
-      await authAPI.register(data.email, data.password, data.role)
+      // 1. Registrar usuario
+      console.log('Registrando usuario con rol:', data.role)
+      const registerResponse = await authAPI.register(data.email, data.password, data.role)
+      console.log('Respuesta de registro:', registerResponse)
+      
+      // 2. Iniciar sesión automáticamente
+      console.log('Iniciando sesión automáticamente')
+      const loginResponse = await authAPI.login(data.email, data.password)
+      console.log('Respuesta de login:', loginResponse)
+      
+      // Guardar token en localStorage
+      localStorage.setItem('token', loginResponse.access_token || loginResponse.token)
+      
+      // Autenticar en el contexto
+      if (authLogin) {
+        await authLogin(data.email, data.password)
+      }
+      
+      // 3. Si es rol "store", crear una tienda automáticamente
+      if (data.role === 'store') {
+        try {
+          console.log('Creando tienda para el usuario')
+          const storeName = `Tienda de ${data.email.split('@')[0]}` // Nombre automático basado en el email
+          await storeAPI.createStore(storeName)
+          console.log('Tienda creada exitosamente')
+        } catch (storeError) {
+          console.error('Error al crear tienda:', storeError)
+          // Continuamos a pesar del error, solo lo reportamos
+        }
+      }
       
       await Swal.fire({
         title: '¡Registro exitoso!',
-        text: 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
+        text: data.role === 'store' 
+          ? 'Tu cuenta y tienda han sido creadas. Ahora puedes agregar productos.' 
+          : 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
         icon: 'success',
         confirmButtonColor: '#3B82F6'
       })
 
-      // Redirigir al login
-      navigate('/auth/login')
+      // Redirigir según el rol
+      if (data.role === 'store' && authLogin) {
+        navigate('/dashboard') // Ir directamente al dashboard si ya tenemos tienda
+      } else {
+        navigate('/auth/login') // Ir al login en otros casos
+      }
       
     } catch (error) {
       console.error('Register error:', error)

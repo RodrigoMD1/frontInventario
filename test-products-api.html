@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba de API de Productos</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { color: #1a56db; }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #1a56db;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #1e429f;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      margin-top: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-family: monospace;
+    }
+    pre {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .output {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+    .error {
+      color: #dc2626;
+      background: #fee2e2;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    .success {
+      color: #047857;
+      background: #d1fae5;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Prueba de API de Productos</h1>
+  
+  <div class="card">
+    <h2>Autenticación</h2>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="test@example.com">
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" value="123456">
+    </div>
+    <button onclick="login()">Iniciar sesión</button>
+    <div id="auth-output" class="output"></div>
+  </div>
+
+  <div class="card">
+    <h2>Obtener Productos</h2>
+    <button onclick="getProducts()">Listar Productos</button>
+    <div id="get-output" class="output"></div>
+  </div>
+
+  <div class="card">
+    <h2>Crear Producto</h2>
+    <p>Edita el JSON del producto antes de crear:</p>
+    <textarea id="product-data">{
+  "name": "Producto de prueba",
+  "price": 100.50,
+  "stock": 10,
+  "category": "Pruebas",
+  "description": "Producto creado para probar la API",
+  "isActive": true
+}</textarea>
+    <button onclick="createProduct()">Crear Producto</button>
+    <div id="create-output" class="output"></div>
+  </div>
+
+  <div class="card">
+    <h2>Status de la conexión</h2>
+    <div>
+      <button onclick="checkBackendStatus()">Verificar Backend</button>
+      <button onclick="clearLogs()">Limpiar Logs</button>
+    </div>
+    <div id="connection-status" class="output"></div>
+  </div>
+
+  <script>
+    // Variable global para almacenar el token
+    let authToken = localStorage.getItem('test-token');
+    
+    // Función para realizar login
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const output = document.getElementById('auth-output');
+      
+      try {
+        output.innerHTML = "Autenticando...";
+        output.className = "output";
+        
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          authToken = data.access_token || data.token;
+          localStorage.setItem('test-token', authToken);
+          
+          output.innerHTML = "✅ Autenticación exitosa\nToken: " + authToken;
+          output.className = "output success";
+        } else {
+          const errorText = await response.text();
+          output.innerHTML = `❌ Error: ${response.status} ${response.statusText}\n${errorText}`;
+          output.className = "output error";
+        }
+      } catch (error) {
+        output.innerHTML = `❌ Error: ${error.message}`;
+        output.className = "output error";
+      }
+    }
+    
+    // Función para obtener productos
+    async function getProducts() {
+      const output = document.getElementById('get-output');
+      
+      try {
+        if (!authToken) {
+          output.innerHTML = "❌ No hay token. Inicia sesión primero.";
+          output.className = "output error";
+          return;
+        }
+        
+        output.innerHTML = "Obteniendo productos...";
+        output.className = "output";
+        
+        const response = await fetch('/api/products', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.ok) {
+          const products = await response.json();
+          output.innerHTML = "✅ Productos obtenidos:\n" + JSON.stringify(products, null, 2);
+          output.className = "output success";
+        } else {
+          const errorText = await response.text();
+          output.innerHTML = `❌ Error: ${response.status} ${response.statusText}\n${errorText}`;
+          output.className = "output error";
+        }
+      } catch (error) {
+        output.innerHTML = `❌ Error: ${error.message}`;
+        output.className = "output error";
+      }
+    }
+    
+    // Función para crear un producto
+    async function createProduct() {
+      const output = document.getElementById('create-output');
+      
+      try {
+        if (!authToken) {
+          output.innerHTML = "❌ No hay token. Inicia sesión primero.";
+          output.className = "output error";
+          return;
+        }
+        
+        output.innerHTML = "Creando producto...";
+        output.className = "output";
+        
+        // Obtener los datos del textarea
+        const productDataRaw = document.getElementById('product-data').value;
+        let productData;
+        
+        try {
+          productData = JSON.parse(productDataRaw);
+        } catch (e) {
+          output.innerHTML = `❌ Error: JSON inválido - ${e.message}`;
+          output.className = "output error";
+          return;
+        }
+        
+        // Crear el producto
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(productData)
+        });
+        
+        const responseText = await response.text();
+        
+        if (response.ok) {
+          output.innerHTML = "✅ Producto creado exitosamente!\n" + responseText;
+          output.className = "output success";
+        } else {
+          output.innerHTML = `❌ Error ${response.status}: ${response.statusText}\n${responseText}`;
+          output.className = "output error";
+        }
+      } catch (error) {
+        output.innerHTML = `❌ Error: ${error.message}`;
+        output.className = "output error";
+      }
+    }
+    
+    // Verificar estado del backend
+    async function checkBackendStatus() {
+      const output = document.getElementById('connection-status');
+      
+      try {
+        output.innerHTML = "Verificando conexión...";
+        output.className = "output";
+        
+        const response = await fetch('/api/health', { 
+          method: 'GET',
+          cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+          const data = await response.text();
+          output.innerHTML = `✅ Backend disponible: ${response.status}\n${data}`;
+          output.className = "output success";
+        } else {
+          output.innerHTML = `⚠️ Backend responde con error: ${response.status} ${response.statusText}`;
+          output.className = "output error";
+        }
+      } catch (error) {
+        output.innerHTML = `❌ Error de conexión: ${error.message}\n\nPosibles causas:
+- El backend no está corriendo
+- El proxy de Vite no está configurado correctamente
+- Hay un problema de CORS`;
+        output.className = "output error";
+      }
+    }
+    
+    // Limpiar todos los logs
+    function clearLogs() {
+      document.querySelectorAll('.output').forEach(el => {
+        el.innerHTML = "";
+        el.className = "output";
+      });
+    }
+  </script>
+</body>
+</html>

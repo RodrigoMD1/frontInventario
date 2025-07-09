@@ -1,8 +1,24 @@
 import { useAuth } from '../../hooks/useAuth'
+import { useProducts } from '../../contexts/useProducts'
 import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 
 export const Dashboard = () => {
   const { user } = useAuth()
+  const { products, loading } = useProducts()
+  
+  // Estado para almacenar los productos recientes
+  const [recentProducts, setRecentProducts] = useState<any[]>([])
+
+  // Efecto para obtener y ordenar los productos por fecha de creación
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const sortedProducts = [...products].sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      setRecentProducts(sortedProducts.slice(0, 5)); // Tomamos los 5 más recientes
+    }
+  }, [products]);
 
   const getPlanName = (plan: string | null) => {
     switch (plan) {
@@ -16,8 +32,8 @@ export const Dashboard = () => {
   const hasActiveSubscription = user?.plan && user.plan !== 'free'
 
   const stats = [
-    { name: 'Productos totales', value: user?.productsUsed?.toString() || '0', icon: '📦' },
-    { name: 'Stock bajo', value: '0', icon: '⚠️' },
+    { name: 'Productos totales', value: products?.length?.toString() || '0', icon: '📦' },
+    { name: 'Stock bajo', value: products?.filter(p => p.stock < 5)?.length?.toString() || '0', icon: '⚠️' },
     { name: 'Ventas este mes', value: '$0', icon: '💰' },
     { name: 'Plan actual', value: getPlanName(user?.plan || null), icon: '👥' },
   ]
@@ -25,7 +41,7 @@ export const Dashboard = () => {
   const quickActions = [
     { name: 'Agregar Producto', href: '/products/new', icon: '➕', color: 'bg-blue-500' },
     { name: 'Ver Inventario', href: '/products', icon: '📋', color: 'bg-green-500' },
-    { name: 'Reportes', href: '/reports', icon: '📊', color: 'bg-purple-500' },
+    { name: 'Gestionar Tienda', href: '/store/create', icon: '🏪', color: 'bg-yellow-500' },
     { name: 'Configuración', href: '/settings', icon: '⚙️', color: 'bg-gray-500' },
   ]
 
@@ -134,19 +150,57 @@ export const Dashboard = () => {
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                 Actividad Reciente
               </h3>
-              <div className="text-center py-8">
-                <span className="text-6xl mb-4 block">📝</span>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">No hay actividad reciente</h4>
-                <p className="text-gray-500 mb-4">
-                  Comienza agregando productos a tu inventario
-                </p>
-                <NavLink
-                  to="/products/new"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  Agregar Primer Producto
-                </NavLink>
-              </div>
+              
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Cargando productos recientes...</p>
+                </div>
+              ) : recentProducts.length > 0 ? (
+                <div className="overflow-hidden">
+                  <ul className="divide-y divide-gray-200">
+                    {recentProducts.map((product) => (
+                      <li key={product.id} className="py-4">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-blue-600 text-lg">📦</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate">
+                              Precio: ${product.price} • Stock: {product.stock} unidades
+                            </p>
+                          </div>
+                          <div className="flex-shrink-0 text-sm text-gray-500">
+                            {new Date(product.createdAt).toLocaleDateString('es-ES')}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="pt-4 border-t border-gray-200 mt-4 text-right">
+                    <NavLink to="/products" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                      Ver todos los productos →
+                    </NavLink>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <span className="text-6xl mb-4 block">📝</span>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No hay actividad reciente</h4>
+                  <p className="text-gray-500 mb-4">
+                    Comienza agregando productos a tu inventario
+                  </p>
+                  <NavLink
+                    to="/products/new"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Agregar Primer Producto
+                  </NavLink>
+                </div>
+              )}
             </div>
           </div>
         </div>
