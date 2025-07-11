@@ -7,10 +7,9 @@ import Swal from 'sweetalert2'
 export const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [editingProduct, setEditingProduct] = useState<string | null>(null)
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { products, loading, error, refreshProducts, updateProduct, deleteProduct } = useProducts()
+  const { products, loading, error, refreshProducts, deleteProduct } = useProducts()
   
   // Al montar el componente, refrescar los productos desde la API
   useEffect(() => {

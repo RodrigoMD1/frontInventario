@@ -4,17 +4,33 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { useProducts } from '../contexts/useProducts';
 import { storeAPI } from '../utils/api';
 
-export function useProductCreation() {
+// Tipos para el hook
+interface ProductData {
+  name: string;
+  price: number;
+  stock: number;
+  category?: string;
+  description?: string;
+  cost?: number;
+  unit?: string;
+}
+
+interface UseProductCreationReturn {
+  createProduct: (productData: ProductData) => Promise<unknown>;
+  loading: boolean;
+  verifiedStoreId: string;
+  hasStoreId: boolean;
+}
+
+export function useProductCreation(): UseProductCreationReturn {
   const { user } = useAuth();
   const { addProduct } = useProducts();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [verifiedStoreId, setVerifiedStoreId] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [verifiedStoreId, setVerifiedStoreId] = useState<string>('');
   
   // Al inicializar, intentar encontrar el storeId correcto
   useEffect(() => {
@@ -29,7 +45,7 @@ export function useProductCreation() {
             setVerifiedStoreId(storeId);
             return;
           }
-        } catch (e) {
+        } catch {
           console.warn('⚠️ No se pudo obtener tiendas existentes');
         }
         
@@ -42,8 +58,8 @@ export function useProductCreation() {
               console.log('✅ Tienda creada/obtenida:', storeResult.store.id);
               setVerifiedStoreId(storeResult.store.id);
             }
-          } catch (e) {
-            console.error('❌ Error al crear tienda:', e);
+          } catch {
+            console.error('❌ Error al crear tienda');
           }
         }
         
@@ -60,10 +76,10 @@ export function useProductCreation() {
     if (user) {
       determineStoreId();
     }
-  }, [user]);
+  }, [user, verifiedStoreId]);
   
   // Función para crear producto con diferentes estrategias
-  const createProduct = async (productData) => {
+  const createProduct = async (productData: ProductData) => {
     setLoading(true);
     
     try {
@@ -75,6 +91,9 @@ export function useProductCreation() {
           console.log('🔄 Estrategia 1: Usando storeId verificado:', verifiedStoreId);
           const result = await addProduct({
             ...productData,
+            category: productData.category || '',
+            description: productData.description || '',
+            unit: productData.unit || '',
             storeId: verifiedStoreId
           });
           console.log('✅ Producto creado con storeId verificado:', result);
@@ -91,6 +110,9 @@ export function useProductCreation() {
           console.log('🔄 Estrategia 2: Usando ID de usuario como storeId:', user.id);
           const result = await addProduct({
             ...productData,
+            category: productData.category || '',
+            description: productData.description || '',
+            unit: productData.unit || '',
             storeId: user.id
           });
           console.log('✅ Producto creado con ID de usuario:', result);
@@ -117,6 +139,9 @@ export function useProductCreation() {
         
         const result = await addProduct({
           ...productData,
+          category: productData.category || '',
+          description: productData.description || '',
+          unit: productData.unit || '',
           storeId: fixedId
         });
         console.log('✅ Producto creado con ID fijo del error:', result);
@@ -131,6 +156,9 @@ export function useProductCreation() {
         console.log('🔄 Estrategia 3: Sin proporcionar storeId explícito');
         const result = await addProduct({
           ...productData,
+          category: productData.category || '',
+          description: productData.description || '',
+          unit: productData.unit || ''
           // No incluir storeId para que el backend lo determine
         });
         console.log('✅ Producto creado con storeId determinado por el backend:', result);
@@ -140,13 +168,13 @@ export function useProductCreation() {
         throw error; // Si llegamos aquí, todas las estrategias fallaron
       }
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error en todas las estrategias de creación:', error);
       
       // Determinar mensaje de error
       let errorMessage = 'Error al crear producto. Intenta nuevamente.';
       
-      if (error.message && error.message.includes('foreign key constraint')) {
+      if (error instanceof Error && error.message && error.message.includes('foreign key constraint')) {
         errorMessage = 'Error de relación entre tienda y producto. El sistema está intentando usar un ID de tienda que no existe.';
         
         await Swal.fire({

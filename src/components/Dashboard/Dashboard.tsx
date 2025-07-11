@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from '../../hooks/useAuth'
 import { useProducts } from '../../contexts/useProducts'
 import { NavLink } from 'react-router-dom'

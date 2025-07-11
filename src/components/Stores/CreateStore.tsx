@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,10 +44,34 @@ export const CreateStore = () => {
         const storeResult = await storeAPI.getOrCreateStore(storeName);
         
         if (storeResult.success) {
-          // Si tenemos una tienda, la mostramos en la lista
-          setExistingStores([storeResult.store]);
-          setError(null);
-          console.log('✅ Tienda cargada correctamente:', storeResult.store);
+          // Si tenemos una tienda, necesitamos obtener su conteo de productos
+          try {
+            // Obtener todos los productos para contar los de la tienda
+            const products = await import('../../utils/api').then(api => api.productAPI.getProducts());
+            
+            // Contar productos activos asociados a la tienda
+            const storeProducts = Array.isArray(products) ? 
+              products.filter(product => product.storeId === storeResult.store.id && product.isActive) : 
+              [];
+            
+            console.log(`✅ Encontrados ${storeProducts.length} productos para la tienda`);
+            
+            // Crear una copia de la tienda con el conteo de productos
+            const storeWithCount = {
+              ...storeResult.store,
+              productsCount: storeProducts.length
+            };
+            
+            setExistingStores([storeWithCount]);
+            setError(null);
+            console.log('✅ Tienda cargada correctamente con conteo de productos:', storeWithCount);
+          } catch (productsError) {
+            console.error('Error al obtener productos:', productsError);
+            // Si falla al obtener productos, seguimos mostrando la tienda pero sin conteo
+            setExistingStores([storeResult.store]);
+            setError(null);
+            console.log('✅ Tienda cargada correctamente (sin conteo de productos):', storeResult.store);
+          }
         } else {
           throw new Error(storeResult.error);
         }
@@ -72,22 +97,61 @@ export const CreateStore = () => {
         throw new Error(storeResult.error);
       }
       
-      // Actualizar la lista de tiendas
-      if (storeResult.isNew) {
-        // Si es nueva, la agregamos a la lista
-        setExistingStores(prev => [...prev, storeResult.store]);
+      // Para cualquier tienda (nueva o existente) asegurarnos de que tenga el conteo de productos
+      try {
+        // Obtener todos los productos para contar los de la tienda
+        const products = await import('../../utils/api').then(api => api.productAPI.getProducts());
+        
+        // Contar productos activos asociados a la tienda
+        const storeProducts = Array.isArray(products) ? 
+          products.filter(product => product.storeId === storeResult.store.id && product.isActive) : 
+          [];
+        
+        // Crear una copia de la tienda con el conteo de productos
+        const storeWithCount = {
+          ...storeResult.store,
+          productsCount: storeProducts.length
+        };
+        
+        // Actualizar la lista de tiendas
+        if (storeResult.isNew) {
+          // Si es nueva, la agregamos a la lista
+          setExistingStores(prev => [...prev, storeWithCount]);
+          
+          await Swal.fire({
+            title: '¡Tienda Creada!',
+            text: 'La tienda ha sido creada exitosamente. Ahora puedes agregar productos.',
+            icon: 'success',
+            confirmButtonColor: '#3b82f6'
+          });
+        } else {
+          // Si ya existe, actualizamos la tienda existente con el nuevo conteo
+          setExistingStores(prev => 
+            prev.map(store => store.id === storeResult.store.id ? storeWithCount : store)
+          );
+          
+          await Swal.fire({
+            title: 'Tienda Existente',
+            text: 'Esta tienda ya existía en tu cuenta y está activa.',
+            icon: 'info',
+            confirmButtonColor: '#3b82f6'
+          });
+        }
+        
+      } catch (productsError) {
+        console.error('Error al obtener productos al crear tienda:', productsError);
+        
+        // Si hay error al obtener productos, seguir con la tienda sin conteo
+        if (storeResult.isNew) {
+          setExistingStores(prev => [...prev, storeResult.store]);
+        }
         
         await Swal.fire({
-          title: '¡Tienda Creada!',
-          text: 'La tienda ha sido creada exitosamente. Ahora puedes agregar productos.',
-          icon: 'success',
-          confirmButtonColor: '#3b82f6'
-        });
-      } else {
-        await Swal.fire({
-          title: 'Tienda Existente',
-          text: 'Esta tienda ya existía en tu cuenta y está activa.',
-          icon: 'info',
+          title: storeResult.isNew ? '¡Tienda Creada!' : 'Tienda Existente',
+          text: storeResult.isNew ? 
+            'La tienda ha sido creada exitosamente. Ahora puedes agregar productos.' : 
+            'Esta tienda ya existía en tu cuenta y está activa.',
+          icon: storeResult.isNew ? 'success' : 'info',
           confirmButtonColor: '#3b82f6'
         });
       }
@@ -141,29 +205,54 @@ export const CreateStore = () => {
             <div className="bg-red-50 p-4 rounded-md text-red-700">
               <p>{error}</p>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setIsLoadingStores(true);
                   setError(null);
                   // Reintentar con getOrCreateStore
                   const storeName = localStorage.getItem('user') ? 
                     `Tienda de ${JSON.parse(localStorage.getItem('user') || '{}').email?.split('@')[0]}` : 
                     'Mi Tienda';
-                  storeAPI.getOrCreateStore(storeName)
-                    .then(result => {
-                      if (result.success) {
+                  
+                  try {
+                    const result = await storeAPI.getOrCreateStore(storeName);
+                    
+                    if (result.success) {
+                      try {
+                        // Obtener todos los productos para contar los de la tienda
+                        const products = await import('../../utils/api').then(api => api.productAPI.getProducts());
+                        
+                        // Contar productos activos asociados a la tienda
+                        const storeProducts = Array.isArray(products) ? 
+                          products.filter(product => product.storeId === result.store.id && product.isActive) : 
+                          [];
+                        
+                        console.log(`✅ Encontrados ${storeProducts.length} productos para la tienda`);
+                        
+                        // Crear una copia de la tienda con el conteo de productos
+                        const storeWithCount = {
+                          ...result.store,
+                          productsCount: storeProducts.length
+                        };
+                        
+                        setExistingStores([storeWithCount]);
+                        console.log('✅ Tienda cargada correctamente con conteo de productos:', storeWithCount);
+                      } catch (productsError) {
+                        console.error('Error al obtener productos:', productsError);
+                        // Si falla al obtener productos, seguimos mostrando la tienda pero sin conteo
                         setExistingStores([result.store]);
-                        console.log('✅ Tienda cargada correctamente en reintento:', result.store);
-                      } else {
-                        setError(result.error || 'No se pudo cargar la tienda');
-                        setExistingStores([]);
+                        console.log('✅ Tienda cargada correctamente (sin conteo de productos):', result.store);
                       }
-                    })
-                    .catch(err => {
-                      console.error('Error al reintentar carga de tiendas:', err);
-                      setError('Error al reintentar. Por favor, intenta nuevamente más tarde.');
+                    } else {
+                      setError(result.error || 'No se pudo cargar la tienda');
                       setExistingStores([]);
-                    })
-                    .finally(() => setIsLoadingStores(false));
+                    }
+                  } catch (err) {
+                    console.error('Error al reintentar carga de tiendas:', err);
+                    setError('Error al reintentar. Por favor, intenta nuevamente más tarde.');
+                    setExistingStores([]);
+                  } finally {
+                    setIsLoadingStores(false);
+                  }
                 }}
                 className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >

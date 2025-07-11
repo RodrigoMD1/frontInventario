@@ -85,7 +85,7 @@ export const Register = () => {
       })
 
       // Redirigir según el rol
-      if (data.role === 'store' && authLogin) {
+      if (data.role === 'store') {
         navigate('/dashboard') // Ir directamente al dashboard si ya tenemos tienda
       } else {
         navigate('/auth/login') // Ir al login en otros casos

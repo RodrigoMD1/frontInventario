@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,7 +23,7 @@ export const EditProduct = () => {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { getProductById, updateProduct, loading, error } = useProducts()
+  const { getProductById, updateProduct } = useProducts()
   const [loadingProduct, setLoadingProduct] = useState(true)
   const [savingProduct, setSavingProduct] = useState(false)
   const [productError, setProductError] = useState<string | null>(null)

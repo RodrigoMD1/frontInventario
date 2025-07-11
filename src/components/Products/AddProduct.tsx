@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -6,7 +5,6 @@ import * as z from 'zod'
 import { NavLink, useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../hooks/useAuth'
-import { useProducts } from '../../contexts/useProducts'
 import { storeAPI } from '../../utils/api'
 // Importar hook de solución temporal
 import { useProductCreation } from '../../hooks/useProductCreation'
@@ -32,7 +30,7 @@ export const AddProduct = () => {
   const navigate = useNavigate()
   
   // Usar el hook de creación de producto con solución temporal
-  const { createProduct, loading, verifiedStoreId: hookStoreId, hasStoreId } = useProductCreation()
+  const { createProduct, loading, verifiedStoreId: hookStoreId } = useProductCreation()
   
   const {
     register,

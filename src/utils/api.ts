@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Tipos basados en el backend real
 interface User {
   id: string
