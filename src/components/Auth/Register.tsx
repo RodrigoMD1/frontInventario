@@ -13,7 +13,6 @@ const registerSchema = z.object({
   email: z.string().email('Ingresa un email válido').min(1, 'El email es requerido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string().min(6, 'Confirma tu contraseña'),
-  role: z.enum(['store', 'admin']),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Debes aceptar los términos y condiciones'
   })
@@ -34,19 +33,16 @@ export const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'store'
-    }
+    resolver: zodResolver(registerSchema)
   })
 
   const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
     setIsLoading(true)
     
     try {
-      // 1. Registrar usuario
-      console.log('Registrando usuario con rol:', data.role)
-      const registerResponse = await authAPI.register(data.email, data.password, data.role)
+      // 1. Registrar usuario (siempre como 'store')
+      console.log('Registrando usuario como administrador')
+      const registerResponse = await authAPI.register(data.email, data.password, 'store')
       console.log('Respuesta de registro:', registerResponse)
       
       // 2. Iniciar sesión automáticamente
@@ -62,34 +58,26 @@ export const Register = () => {
         await authLogin(data.email, data.password)
       }
       
-      // 3. Si es rol "store", crear una tienda automáticamente
-      if (data.role === 'store') {
-        try {
-          console.log('Creando tienda para el usuario')
-          const storeName = `Tienda de ${data.email.split('@')[0]}` // Nombre automático basado en el email
-          await storeAPI.createStore(storeName)
-          console.log('Tienda creada exitosamente')
-        } catch (storeError) {
-          console.error('Error al crear tienda:', storeError)
-          // Continuamos a pesar del error, solo lo reportamos
-        }
+      // 3. Crear una tienda automáticamente para el administrador
+      try {
+        console.log('Creando tienda para el administrador')
+        const storeName = `Administrador de ${data.email.split('@')[0]}` // Nombre automático basado en el email
+        await storeAPI.createStore(storeName)
+        console.log('Tienda creada exitosamente')
+      } catch (storeError) {
+        console.error('Error al crear tienda:', storeError)
+        // Continuamos a pesar del error, solo lo reportamos
       }
       
       await Swal.fire({
         title: '¡Registro exitoso!',
-        text: data.role === 'store' 
-          ? 'Tu cuenta y tienda han sido creadas. Ahora puedes agregar productos.' 
-          : 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
+        text: 'Tu cuenta de administrador ha sido creada. Ahora puedes gestionar el inventario.',
         icon: 'success',
         confirmButtonColor: '#3B82F6'
       })
 
-      // Redirigir según el rol
-      if (data.role === 'store') {
-        navigate('/dashboard') // Ir directamente al dashboard si ya tenemos tienda
-      } else {
-        navigate('/auth/login') // Ir al login en otros casos
-      }
+      // Ir directamente al dashboard
+      navigate('/dashboard')
       
     } catch (error) {
       console.error('Register error:', error)
@@ -125,10 +113,10 @@ export const Register = () => {
             <h2 className="text-3xl font-extrabold text-gray-900">GlobalOffice</h2>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Crea tu cuenta en GlobalOffice
+            Crea tu cuenta de administrador
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Comienza a gestionar tu inventario de forma profesional
+            Registra tu cuenta para gestionar el inventario
           </p>
         </div>
         
@@ -147,22 +135,6 @@ export const Register = () => {
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Tipo de cuenta
-              </label>
-              <select
-                {...register('role')}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              >
-                <option value="store">Tienda (Gestionar mi inventario)</option>
-                <option value="admin">Administrador (Gestionar múltiples tiendas)</option>
-              </select>
-              {errors.role && (
-                <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
               )}
             </div>
             
@@ -232,7 +204,7 @@ export const Register = () => {
                   Creando cuenta...
                 </div>
               ) : (
-                'Crear cuenta'
+                'Crear cuenta de administrador'
               )}
             </button>
           </div>

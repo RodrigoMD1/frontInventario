@@ -30,6 +30,9 @@ import { PaymentSuccess } from '../components/Payment/PaymentSuccess';
 import { PaymentFailure } from '../components/Payment/PaymentFailure';
 import { PaymentPending } from '../components/Payment/PaymentPending';
 
+// Integration components
+import { ApiKeys } from '../components/Integration/ApiKeys';
+
 export const MisRutas = () => {
   return (
     <AuthProvider>
@@ -231,6 +234,16 @@ export const MisRutas = () => {
                   <p className="mt-2 text-lg">Gestiona usuarios y suscripciones</p>
                   <p className="mt-4 text-gray-600">Próximamente: Panel completo de administración</p>
                 </div>
+              </>
+            </ProtectedRoute>
+          } />
+
+          {/* Rutas de integración */}
+          <Route path="/integration/api-keys" element={
+            <ProtectedRoute>
+              <>
+                <Navbar />
+                <ApiKeys />
               </>
             </ProtectedRoute>
           } />

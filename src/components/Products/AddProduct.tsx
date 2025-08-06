@@ -7,7 +7,7 @@ import Swal from 'sweetalert2'
 import { useAuth } from '../../hooks/useAuth'
 import { storeAPI } from '../../utils/api'
 // Importar hook de solución temporal
-import { useProductCreation } from '../../hooks/useProductCreation'
+import { useProductCreation } from '../../hooks/useProductCreationHook'
 
 const productSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
