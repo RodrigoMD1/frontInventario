@@ -5,6 +5,7 @@ import { Inicio } from '../components/inicio';
 import { Navbar } from '../components/Layout/Navbar';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ProductProvider } from '../contexts/ProductContext';
+import { CartProvider } from '../contexts/CartContext'
 
 // Auth components
 import { Login } from '../components/Auth/Login';
@@ -32,6 +33,14 @@ import { PaymentPending } from '../components/Payment/PaymentPending';
 
 // Integration components
 import { ApiKeys } from '../components/Integration/ApiKeys';
+
+// Leather Queens components
+import { LeatherQueens } from '../components/LeatherQueens';
+
+// Cart components
+import { Cart } from '../components/Cart';
+import { Checkout } from '../components/Checkout';
+import { TrackShipment } from '../components/TrackShipment';
 
 export const MisRutas = () => {
   return (
@@ -63,6 +72,38 @@ export const MisRutas = () => {
               <Footer />
             </>
           } />
+
+          <Route path="/leatherqueens" element={
+            <CartProvider>
+              <Navbar />
+              <LeatherQueens />
+              <Footer />
+            </CartProvider>
+          } />
+
+          <Route path="/cart" element={
+            <CartProvider>
+              <Navbar />
+              <Cart />
+              <Footer />
+            </CartProvider>
+          } />
+
+           <Route path="/checkout" element={
+              <CartProvider>
+                <Navbar />
+                <Checkout />
+                <Footer />
+              </CartProvider>
+            } />
+
+            <Route path="/seguimiento" element={
+              <>
+                <Navbar />
+                <TrackShipment />
+                <Footer />
+              </>
+            } />
 
           {/* Rutas de autenticación */}
           <Route path="/auth/login" element={<Login />} />

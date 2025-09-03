@@ -1,5 +1,7 @@
+
 import type { ReactNode } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useLocation, Navigate } from 'react-router-dom'
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -13,10 +15,10 @@ export const ProtectedRoute = ({
   requireAdmin = false 
 }: ProtectedRouteProps) => {
   const { user, loading, isAuthenticated } = useAuth()
+  const location = useLocation()
 
   // Verificar si tiene suscripción activa
   const hasActiveSubscription = user?.plan && user.plan !== 'free'
-  
   // Verificar si es admin
   const isAdmin = user?.role === 'admin'
 
@@ -32,16 +34,15 @@ export const ProtectedRoute = ({
     )
   }
 
-  // Redirigir si no está autenticado
-  if (!isAuthenticated) {
-    window.location.href = '/auth/login'
-    return null
+  // Si no está autenticado y no está en login/register, redirigir
+  const isAuthPage = location.pathname.startsWith('/auth/login') || location.pathname.startsWith('/auth/register')
+  if (!isAuthenticated && !isAuthPage) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />
   }
 
   // Verificar si requiere suscripción
   if (requireSubscription && !hasActiveSubscription) {
-    window.location.href = '/subscription/plans'
-    return null
+    return <Navigate to="/subscription/plans" state={{ from: location }} replace />
   }
 
   // Verificar si requiere permisos de admin

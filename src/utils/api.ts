@@ -55,9 +55,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || (
 )
 
 // Helper function para hacer requests autenticados
+import { useLocation } from 'react-router-dom'
+
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token')
-  
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -70,12 +71,15 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
   try {
     console.log(`🔄 API Request: ${endpoint}`, { method: options.method || 'GET' });
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
-    
-    // Si el token expiró, redirigir al login
+
+    // Si el token expiró, redirigir al login SOLO si no estamos ya en login/register
     if (response.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/auth/login'
+      const currentPath = window.location.pathname
+      if (!currentPath.startsWith('/auth/login') && !currentPath.startsWith('/auth/register')) {
+        window.location.href = '/auth/login'
+      }
       throw new Error('Token expirado')
     }
 

@@ -27,6 +27,17 @@ export const Navbar = () => {
               </li>
             )}
             <li><NavLink to="/contacto">Contacto</NavLink></li>
+            <li tabIndex={0}>
+              <a className="justify-between">
+                LeatherQueens <span className="ml-1">▼</span>
+              </a>
+              <ul className="p-2 bg-white z-30 text-black">
+                <li><NavLink to="/leatherqueens">Tienda</NavLink></li>
+                <li><NavLink to="/cart">🛒 Carrito</NavLink></li>
+                <li><NavLink to="/checkout">Finalizar compra</NavLink></li>
+                <li><NavLink to="/seguimiento">Seguimiento</NavLink></li>
+              </ul>
+            </li>
           </ul>
         </div>
         <NavLink to="/inicio" className="btn btn-ghost text-xl">GlobalOffice</NavLink>
@@ -47,6 +58,17 @@ export const Navbar = () => {
             </li>
           )}
           <li><NavLink to="/contacto">Contacto</NavLink></li>
+          <li tabIndex={0}>
+            <details>
+              <summary>LeatherQueens <span className="ml-1">▼</span></summary>
+              <ul className="p-2 bg-white z-30 text-black">
+                <li><NavLink to="/leatherqueens">Tienda</NavLink></li>
+                <li><NavLink to="/cart">🛒 Carrito</NavLink></li>
+                <li><NavLink to="/checkout">Finalizar compra</NavLink></li>
+                <li><NavLink to="/seguimiento">Seguimiento</NavLink></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </div>
       
